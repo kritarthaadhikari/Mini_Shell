@@ -1,0 +1,2 @@
+"pwd" Displays the current working directory
+"ls" Lists the files and directories in the current directory
