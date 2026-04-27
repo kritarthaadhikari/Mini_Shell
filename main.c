@@ -25,7 +25,6 @@ void AddHistory(char* command){
 
     remove("history.txt");
     rename("history_temp.txt","history.txt");
-
 }
 
 
@@ -158,6 +157,7 @@ int RepeatCommand(char **command){
         return 2;
     }
 }
+
 int ClearCommand(char **command){
     if(command[1]!=NULL){
         printf("[ERROR]: 'clear' command takes no argument but they were given.\n");
@@ -165,6 +165,24 @@ int ClearCommand(char **command){
     }
     system("cls");
     return 2;
+}
+
+int ChangeDirectoryCommand(char **command){
+    if(command[1] == NULL){
+        printf("[ERROR]: 'cd' requires a directory path.\n");
+        return 1;
+    }
+
+    if(command[2] != NULL){
+        printf("[ERROR]: 'cd' takes only one argument.\n");
+        return 1;
+    }
+
+    if(chdir(command[1]) != 0){
+        perror("chdir() error");
+        return 1;
+    }
+    return 0;
 }
 
 int PwdCommand() {
@@ -275,6 +293,9 @@ int ExecuteCommand(char **command){
     }
     else if (strcmp(command[0],"automate")==0){
         return AutomateCommand(command);
+    }
+    else if(strcmp(command[0],"cd")==0){
+        return ChangeDirectoryCommand(command);
     }
     else{
         printf ("[ERROR]: '%s' is not a recognized command.\n\n",command[0]);

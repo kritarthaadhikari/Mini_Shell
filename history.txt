@@ -1,4 +1,11 @@
 exit
+automate automate.txt
+exit
+automate automate.txt
+pwd
+ls
+help
+exit
 help
 pwd
 ls
