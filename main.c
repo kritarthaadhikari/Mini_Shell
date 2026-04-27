@@ -65,32 +65,33 @@ int HelpCommand(char **command){
     if (command[2]!=NULL && command[1]!=NULL){
         printf("[ERROR] 'help' takes 0 or 1 arguments but more were given.\n");
         return 1;
-    }else{
-        FILE *fp = fopen("help.txt","r");
-        char line[256];
-        char helpCommand[32];
-        int printed = 0;
-
-
-        while (fgets(line, sizeof(line), fp) != NULL) {
-            int i=0;
-            while(line[i] != ' '){
-                helpCommand[i] = line[i];
-                i++;
-            }
-            helpCommand[i] = '\0';
-            if (command[1]==NULL || strcmp(helpCommand,command[1])==0  ){
-                printf("%s",line);
-                printed = 1;
-            }
-        }
-        if (printed==0 && command[1]!=NULL){
-            printf("[ERROR]: '%s' command not found.",command[1]);
-            return 1;
-        }
-        fclose(fp);
-        return 0;
     }
+    FILE *fp = fopen("help.txt","r");
+    char line[256];
+    char helpCommand[32];
+    int printed = 0;
+
+
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        int i=0;
+        while(line[i] != ' '){
+            helpCommand[i] = line[i];
+            i++;
+        }
+        helpCommand[i] = '\0';
+        if (command[1]==NULL || strcmp(helpCommand,command[1])==0  ){
+            printf("%s",line);
+            printed = 1;
+        }
+    }
+    if (printed==0 && command[1]!=NULL){
+        printf("[ERROR]: '%s' command not found.",command[1]);
+        return 1;
+    }
+    fclose(fp);
+    printf("\n");
+    return 0;
+
 }
 
 int HistoryCommand(char **command){
@@ -122,20 +123,18 @@ int CatCommand(char **command){
         printf("[ERROR]: 'cat' takes only one argument.\n");
         return 1;
     }
-
     FILE *fp = fopen(command[1], "r");
 
     if(fp == NULL){
         printf("[ERROR]: File '%s' not found.\n", command[1]);
         return 1;
     }
-
     char ch;
 
     while((ch = fgetc(fp)) != EOF){
         putchar(ch);
     }
-
+    printf("\n");
     fclose(fp);
     return 0;
 }
@@ -176,8 +175,59 @@ int PwdCommand() {
         return 0;
     } else {
         perror("getcwd() error"); //perror- abbreviated(print error)
+        // finds the system error message and displays it
         return 1;
     }
+}
+
+int LsCommand(){
+    DIR *folder;           // Points to the folder stream
+    struct dirent *entry;  // Points to the current file name package
+    folder = opendir("."); //"." shorthand for current directory
+    if (folder == NULL) {
+        perror("Unable to read directory");
+        return 1;
+    }
+    while ((entry = readdir(folder)) != NULL) { //analogical to fgetc()
+        printf("%s\n", entry->d_name); //d_name, d_ino, d_type are the members/fields of struct dirent
+    }
+    closedir(folder);
+
+    return 0;
+}
+
+int AutomateCommand(char **command){
+
+    if(command[1] == NULL){
+        printf("[ERROR]: 'automate' requires a file path.\n");
+        return 1;
+    }
+
+    if(command[2] != NULL){
+        printf("[ERROR]: 'automate' takes only one argument.\n");
+        return 1;
+    }
+
+    FILE *fp = fopen(command[1], "r");
+
+    if(fp == NULL){
+        printf("[ERROR]: File '%s' not found.\n", command[1]);
+        return 1;
+    }
+
+    char line[256];
+    char *parsedInput[32];
+    int executed = 0;
+    while(fgets(line,sizeof(line),fp)!=NULL){
+        ParseInput(line,parsedInput);
+        if(ExecuteCommand(parsedInput) != 1){
+            executed=1;
+            printf("Executed command %s\n",line);      // This puts it to new line by itself
+        }else{
+            printf("[ERROR]: Error executing command %s\n",line);
+        }
+    }
+    return 0;
 }
 
 int ExecuteCommand(char **command){
@@ -219,6 +269,12 @@ int ExecuteCommand(char **command){
     }
     else if(strcmp(command[0],"pwd")==0){
         return PwdCommand();
+    }
+    else if(strcmp(command[0],"ls")==0){
+        return LsCommand();
+    }
+    else if (strcmp(command[0],"automate")==0){
+        return AutomateCommand(command);
     }
     else{
         printf ("[ERROR]: '%s' is not a recognized command.\n\n",command[0]);
