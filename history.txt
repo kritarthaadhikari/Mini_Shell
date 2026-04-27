@@ -1,4 +1,8 @@
 exit
+echo hello a.txt
+touch a.txt
+rm a.exe
+exit
 automate automate.txt
 exit
 automate automate.txt

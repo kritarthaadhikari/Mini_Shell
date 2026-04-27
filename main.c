@@ -178,10 +178,11 @@ int ChangeDirectoryCommand(char **command){
         return 1;
     }
 
-    if(chdir(command[1]) != 0){
-        perror("chdir() error");
+    if(chdir(command[1]) != 0){ //0 for success -1 for failure
+        perror("chdir() error\n");
         return 1;
     }
+    printf("Changed directory to %s\n",command[1]);
     return 0;
 }
 
@@ -248,6 +249,57 @@ int AutomateCommand(char **command){
     return 0;
 }
 
+int RemoveCommand(char **command){
+    if(command[1] == NULL){
+        printf("[ERROR]: 'rm' requires a file path.\n");
+        return 1;
+    }
+
+    if(command[2] != NULL){
+        printf("[ERROR]: 'rm' takes only one argument.\n");
+        return 1;
+    }
+
+    remove(command[1]);
+    printf("File %s removed.\n",command[1]);
+    return 0;
+}
+
+int TouchCommand(char **command){
+    if(command[1] == NULL){
+        printf("[ERROR]: 'touch' requires a file path.\n");
+        return 1;
+    }
+
+    if(command[2] != NULL){
+        printf("[ERROR]: 'touch' takes only one argument.\n");
+        return 1;
+    }
+
+    FILE *fp = fopen(command[1],"w");
+    fclose(fp);
+    printf("File %s created.\n",command[1]);
+    return 0;
+}
+
+int EchoCommand(char **command){
+    if(command[1]==NULL || command[2] == NULL){
+        printf("[ERROR]: 'echo' command takes two arguments.\n");
+        return 1;
+    }
+    int counter = 0;
+    for(;command[counter]!=NULL;counter++);
+    FILE *fp = fopen(command[counter-1],"a");
+    for(int i=1;i<counter-1;i++){
+        fputs(command[i],fp);
+        fputc(' ',fp);
+    }
+    fputc('\n',fp);
+    fclose(fp);
+    printf("Wrote to file %s.\n",command[counter-1]);
+    return 0;
+}
+
 int ExecuteCommand(char **command){
 
     // Implementation for the exit command
@@ -296,6 +348,15 @@ int ExecuteCommand(char **command){
     }
     else if(strcmp(command[0],"cd")==0){
         return ChangeDirectoryCommand(command);
+    }
+    else if (strcmp(command[0],"rm")==0){
+        return RemoveCommand(command);
+    }
+    else if (strcmp(command[0],"touch")==0){
+        return TouchCommand(command);
+    }
+    else if (strcmp(command[0],"echo")==0){
+        return EchoCommand(command);
     }
     else{
         printf ("[ERROR]: '%s' is not a recognized command.\n\n",command[0]);
